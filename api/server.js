@@ -60,6 +60,34 @@ app.get('/api/products/:id', (req, res) => {
   }
 });
 
+// Create Procduct
+app.post('/api/products', (req, res) => {
+  console.log("➕ POST /api/products - Création d'un produit");
+  
+  const { name, stock, minimum } = req.body;
+
+  if (!name || stock === undefined || minimum === undefined) {
+    return res.status(400).json({ 
+      error: 'Données manquantes (name, stock, minimum requis)' 
+    });
+  }
+
+    try {
+      const insert = db.prepare(`
+        INSERT INTO products (name, stock, minimum) 
+        VALUES (?, ?, ?)
+      `);
+      const result = insert.run(name, stock, minimum);
+      const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
+        
+      // 5. Renvoie le produit créé avec le code 201 (Created)
+      res.status(201).json(newProduct);
+    } catch (error) {
+        console.error("Erreur d'insertion:", error);
+        res.status(500).json({ error: 'Erreur lors de la création du produit' });
+      }
+});
+
 
 // Démarrage du serveur
 app.listen(PORT, () => {
