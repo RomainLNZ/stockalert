@@ -39,19 +39,15 @@ app.get('/api/products', (req, res) => {
 app.get('/api/products/:id', (req, res) => {
   console.log("📦 GET /api/products/:id - Lecture depuis la BDD");
   
-// 1. Récupère l'ID depuis l'URL
   const id = req.params.id;
   
   try {
-    // 2. Fais la requête SQL pour récupérer le produit
     const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
     
-    // 3. Vérifie si le produit existe
     if (!product) {
       return res.status(404).json({ error: 'Produit introuvable' });
     }
     
-    // 4. Renvoie le produit
     res.json(product);
     
   } catch (error) {
@@ -80,7 +76,6 @@ app.post('/api/products', (req, res) => {
       const result = insert.run(name, stock, minimum);
       const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
         
-      // 5. Renvoie le produit créé avec le code 201 (Created)
       res.status(201).json(newProduct);
     } catch (error) {
         console.error("Erreur d'insertion:", error);
@@ -88,6 +83,68 @@ app.post('/api/products', (req, res) => {
       }
 });
 
+// Update Product
+app.put('/api/products/:id', (req, res) => {  // ✅ Ajout de /:id
+  console.log("✏️ PUT /api/products/:id - Modification d'un produit");
+  
+  const id = req.params.id;
+  const { name, stock, minimum } = req.body;
+
+  try {
+
+    if (!name || stock === undefined || minimum === undefined) {
+      return res.status(400).json({ 
+        error: 'Données manquantes (name, stock, minimum requis)' 
+      });
+    }
+
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+
+    if (!product) {
+      return res.status(404).json({ error: 'Produit introuvable' });
+    }
+
+    db.prepare('UPDATE products SET name = ?, stock = ?, minimum = ? WHERE id = ?').run(
+      name,
+      stock,
+      minimum,
+      id
+    );
+
+    const updatedProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+
+    res.json(updatedProduct);
+
+  } catch (error) {
+    console.error("Erreur de mise à jour:", error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour du produit' });
+  }
+});
+
+//Delete Product
+app.delete('/api/products/:id', (req, res) => {
+  console.log("🗑️ DELETE /api/products/:id - Suppression d'un produit");
+
+  const id = req.params.id;
+
+  try  {
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+
+    if (!product) {
+      return res.status(404).json({ error: 'Produit introuvable'});
+    }
+
+    db.prepare('DELETE FROM products WHERE id = ?').run(id);
+
+    res.json({ message: 'Produit supprimé avec succès',
+      deletedProduct: product
+    });
+
+  } catch (error) {
+    console.error("Erreur de suppression:", error);
+    res.status(500).json({ error: 'Erreur lors de la suppression du produit' });
+  }
+});
 
 // Démarrage du serveur
 app.listen(PORT, () => {
