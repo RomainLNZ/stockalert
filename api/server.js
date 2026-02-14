@@ -7,7 +7,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Initialiser la base de données au démarrage
-initDatabase();
+(async () => {
+  await initDatabase();
+  app.listen(PORT, () => console.log(`Server on ${PORT}`));
+})();
+
 
 // Middlewares
 app.use(cors());
