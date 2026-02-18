@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import ProductList from './components/ProductList'
 import ProductForm from './components/ProductForm'
+import ProductEditForm from './components/ProductEditForm'
 
 
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const fetchProducts = async () => {
     try {
@@ -34,12 +36,22 @@ function App() {
   return (
     <div>
       <h1>StockAlert</h1>
-      <ProductForm onProductCreated={fetchProducts} />  {/* ← Maintenant ça marche */}
+      <ProductForm onProductCreated={fetchProducts} />
+
+      {editingProduct ? (
+        <ProductEditForm
+          product={editingProduct}
+          onProductUpdated={fetchProducts}
+          onCancel={() => setEditingProduct(null)}
+        />
+      ) : null}
+
       <ProductList
         products={products}
         loading={loading}
         error={error}
         onProductDeleted={fetchProducts}
+        setEditingProduct={setEditingProduct}
       />
     </div>
   );

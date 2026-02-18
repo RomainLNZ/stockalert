@@ -1,4 +1,4 @@
-function ProductList({ products, loading, error, onProductDeleted }) {
+function ProductList({ products, loading, error, onProductDeleted, setEditingProduct }) {
 
     if (loading) {
         return <div>Chargement des produits...</div>;
@@ -34,16 +34,18 @@ function ProductList({ products, loading, error, onProductDeleted }) {
         }
     };
 
-    // Rendu de la liste
     return (
         <div>
-            <h1>Liste des produits</h1>
+            <h2>Liste des produits</h2>
             <ul>
                 {products.map(product => (
                     <li key={product.id}>
                         {product.name} - Stock: {product.stock} (Min: {product.minimum})
+                        <button onClick={() => setEditingProduct(product)}>
+                            ✏️
+                        </button>
                         <button onClick={() => handleDelete(product.id)}>
-                            🗑️ Supprimer
+                            🗑️
                         </button>
                     </li>
                 ))}

@@ -42,14 +42,14 @@ function ProductForm({ onProductCreated }) {
 
         } catch (erreur) {
             console.error("Erreur lors de la création du produit :", erreur);
-            alert("Erreur : " + erreur.message);  // Afficher l'erreur à l'utilisateur
+            alert("Erreur : " + erreur.message);
         }
     }
 
     // 3. Crée le JSX avec le formulaire
     return (
         <div>
-            <h2>Ajouter un nouveau produit</h2>
+            <h3>Ajouter un nouveau produit</h3>
             <form onSubmit={handleSubmit}>
                 <div>
                     <label>Nom du produit :</label>
