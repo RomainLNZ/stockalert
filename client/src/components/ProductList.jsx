@@ -39,8 +39,21 @@ function ProductList({ products, loading, error, onProductDeleted, setEditingPro
             <h2>Liste des produits</h2>
             <ul>
                 {products.map(product => (
-                    <li key={product.id}>
+                    <li key={product.id}
+                        style={{ color: product.stock < product.minimum ? 'red' : 'white' }}>
                         {product.name} - Stock: {product.stock} (Min: {product.minimum})
+
+                        {product.stock < product.minimum && (
+                            <span style={{
+                                color: 'orange',
+                                fontWeight: 'bold',
+                                marginLeft: '10px'
+                            }}>
+                                ⚠️ ALERTE
+                            </span>
+                        )}
+
+
                         <button onClick={() => setEditingProduct(product)}>
                             ✏️
                         </button>

@@ -17,7 +17,6 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Route de test
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -26,7 +25,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Route products - MODIFIÉE pour lire depuis la BDD
 app.get('/api/products', (req, res) => {
   console.log("📦 GET /api/products - Lecture depuis la BDD");
   
@@ -60,7 +58,6 @@ app.get('/api/products/:id', (req, res) => {
   }
 });
 
-// Create Procduct
 app.post('/api/products', (req, res) => {
   console.log("➕ POST /api/products - Création d'un produit");
   
@@ -87,7 +84,6 @@ app.post('/api/products', (req, res) => {
       }
 });
 
-// Update Product
 app.put('/api/products/:id', (req, res) => {  // ✅ Ajout de /:id
   console.log("✏️ PUT /api/products/:id - Modification d'un produit");
   
@@ -125,7 +121,6 @@ app.put('/api/products/:id', (req, res) => {  // ✅ Ajout de /:id
   }
 });
 
-//Delete Product
 app.delete('/api/products/:id', (req, res) => {
   console.log("🗑️ DELETE /api/products/:id - Suppression d'un produit");
 

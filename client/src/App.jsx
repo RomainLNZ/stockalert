@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import ProductList from './components/ProductList'
 import ProductForm from './components/ProductForm'
 import ProductEditForm from './components/ProductEditForm'
-
+import Toast from './components/Toast';
 
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
 
   const fetchProducts = async () => {
     try {
@@ -29,6 +30,10 @@ function App() {
     }
   };
 
+  const showToast = (message) => {
+    setToastMessage(message);
+  };
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -36,6 +41,16 @@ function App() {
   return (
     <div>
       <h1>StockAlert</h1>
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type="warning"
+          onClose={() => setToastMessage(null)}
+        />
+      )}
+
+
       <ProductForm onProductCreated={fetchProducts} />
 
       {editingProduct ? (
@@ -43,6 +58,7 @@ function App() {
           product={editingProduct}
           onProductUpdated={fetchProducts}
           onCancel={() => setEditingProduct(null)}
+          onShowToast={showToast}
         />
       ) : null}
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function ProductEditForm({ product, onProductUpdated, onCancel }) {
+function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
 
     const [quantity, setQuantity] = useState('');
 
@@ -61,7 +61,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel }) {
             }
 
             onProductUpdated()
-
+            onCancel()
             setQuantity('')
 
         } catch (erreur) {
@@ -79,6 +79,10 @@ function ProductEditForm({ product, onProductUpdated, onCancel }) {
 
         const newStock = product.stock - Number(quantity)
 
+        if (newStock < product.minimum) {
+            onShowToast(`⚠️ Stock critique : ${product.name}`);
+        }
+
         try {
             const response = await fetch(`http://localhost:5000/api/products/${product.id}`, {
                 method: 'PUT',
@@ -95,6 +99,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel }) {
             }
 
             onProductUpdated()
+            onCancel()
             setQuantity('')
 
         } catch (erreur) {
