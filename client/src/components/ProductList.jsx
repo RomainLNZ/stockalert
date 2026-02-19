@@ -40,7 +40,7 @@ function ProductList({ products, loading, error, onProductDeleted, setEditingPro
             <ul>
                 {products.map(product => (
                     <li key={product.id}
-                        style={{ color: product.stock < product.minimum ? 'red' : 'white' }}>
+                        style={{ color: product.stock < product.minimum ? 'red' : 'black' }}>
                         {product.name} - Stock: {product.stock} (Min: {product.minimum})
 
                         {product.stock < product.minimum && (

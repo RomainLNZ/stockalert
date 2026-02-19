@@ -1,13 +1,8 @@
 import React, { useEffect } from 'react';
 
 function Toast({ message, duration = 3000, type = 'warning', onClose }) {
-    const colors = {
-        warning: 'orange',
-        error: 'red',
-        success: 'green'
-    };
-
-    const backgroundColor = colors[type];
+    const bgColor = type === 'warning' ? 'bg-orange-500' :
+        type === 'error' ? 'bg-red-500' : 'bg-green-500';
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -18,18 +13,11 @@ function Toast({ message, duration = 3000, type = 'warning', onClose }) {
     }, [duration, onClose]);
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: backgroundColor,  // ← Utilise la variable
-            color: 'white',
-            padding: '15px 30px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            zIndex: 1000
-        }}>
+        <div className={`
+            fixed top-5 left-1/2 transform -translate-x-1/2
+            ${bgColor}
+            text-white px-8 py-4 rounded-lg shadow-lg z-50
+        `}>
             {message}
         </div>
     );

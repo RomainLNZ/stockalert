@@ -80,9 +80,9 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
         const newStock = product.stock - Number(quantity)
 
         if (newStock < product.minimum) {
-            onShowToast(`⚠️ Stock critique : ${product.name}`);
+            onShowToast(`⚠️ Stock critique : ${product.name}, 'warning'`);
         }
-
+        
         try {
             const response = await fetch(`http://localhost:5000/api/products/${product.id}`, {
                 method: 'PUT',

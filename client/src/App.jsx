@@ -9,7 +9,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [toastMessage, setToastMessage] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const fetchProducts = async () => {
     try {
@@ -30,8 +30,8 @@ function App() {
     }
   };
 
-  const showToast = (message) => {
-    setToastMessage(message);
+  const showToast = (message, type = 'warning') => {
+    setToast({ message, type });
   };
 
   useEffect(() => {
@@ -40,18 +40,20 @@ function App() {
 
   return (
     <div>
-      <h1>StockAlert</h1>
+      <h1 className="text-4xl font-bold text-blue-600">StockAlert</h1>
 
-      {toastMessage && (
+      {toast && (
         <Toast
-          message={toastMessage}
-          type="warning"
-          onClose={() => setToastMessage(null)}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
 
 
-      <ProductForm onProductCreated={fetchProducts} />
+      <ProductForm onProductCreated={fetchProducts}
+        onShowToast={showToast}
+      />
 
       {editingProduct ? (
         <ProductEditForm

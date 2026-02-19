@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function ProductForm({ onProductCreated }) {
+function ProductForm({ onProductCreated, onShowToast  }) {
     // 1. Crée le state formData
     const [formData, setFormData] = useState({
         name: '',
@@ -31,6 +31,7 @@ function ProductForm({ onProductCreated }) {
 
             const data = await response.json();
             onProductCreated()
+            onShowToast("✅ Produit créé avec succès: " + data.name, 'success');
             console.log("Produit créé avec succès :", data);
 
             // Vider le formulaire
