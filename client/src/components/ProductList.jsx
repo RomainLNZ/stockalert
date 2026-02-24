@@ -21,17 +21,17 @@ function ProductList({ products, loading, error, onProductDeleted, setEditingPro
 
     return (
         <div>
-            <h2>Liste des produits :</h2>
+            <h2 className="text-gray-100">Liste des produits :</h2>
 
             {/* GRID de cartes */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-4xl mx-auto">
                 {products.map((product) => (
                     <div
                         key={product.id}
                         className={`
                             bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-4
-                            transition-all duration-300 ease-in-out hover:bg-white/15 hover:shadow-xl hover:-translate-y-0.5
-                            ${product.stock < product.minimum ? "text-red-600" : "text-gray-800"}
+                            transition-all duration-300 ease-in-out hover:bg-white/20 hover:shadow-xl hover:-translate-y-0.5
+                            ${product.stock < product.minimum ? "text-red-600" : "text-gray-100"}
                             max-w-[260px] w-full
                             aspect-square
                         `}

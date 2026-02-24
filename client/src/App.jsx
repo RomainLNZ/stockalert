@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import ProductList from './components/ProductList'
 import ProductForm from './components/ProductForm'
 import ProductEditForm from './components/ProductEditForm'
-import Toast from './components/Toast2';
+import Toast from './components/Toast';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -39,8 +39,8 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen p-8 flex flex-col items-center bg-blue-100 bg-[url('/src/assets/bg4.png')] bg-cover bg-center">
-      <h1 className="text-4xl font-bold text-white mb-8">StockAlert</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-indigo-900 to-blue-950 p-8 text-white">
+      <h1 className="text-4xl font-bold mb-8 text-center">StockAlert</h1>
 
       {toast && (
         <Toast
