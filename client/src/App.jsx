@@ -5,12 +5,14 @@ import Dashboard from './pages/Dashboard';
 import AddProduct from './pages/AddProduct';
 import ProductEditForm from './components/ProductEditForm'
 import Toast from './components/Toast';
+import ProductForm from './components/ProductForm';
 
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   const fetchProducts = async () => {
@@ -60,6 +62,7 @@ function App() {
           error={error}
           onProductDeleted={fetchProducts}
           setEditingProduct={setEditingProduct}
+          setIsAddModalOpen={setIsAddModalOpen}
         />}
         />
 
@@ -78,6 +81,25 @@ function App() {
           onShowToast={showToast}
         />
       ) : null}
+
+      {isAddModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setIsAddModalOpen(false)}
+        >
+          <div className="relative max-w-2xl w-full mx-4"
+            onClick={(e) => e.stopPropagation()}>
+            <ProductForm
+              onProductCreated={() => {
+                fetchProducts();
+                setIsAddModalOpen(false);
+              }}
+              onCancel={() => setIsAddModalOpen(false)}
+              onShowToast={showToast}
+            />
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function ProductForm({ onProductCreated, onShowToast }) {
+function ProductForm({ onProductCreated, onShowToast, onCancel }) {
     // 1. Crée le state formData
     const [formData, setFormData] = useState({
         name: '',
@@ -49,8 +49,15 @@ function ProductForm({ onProductCreated, onShowToast }) {
 
     // 3. Crée le JSX avec le formulaire
     return (
-        <div className="bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-6 max-w-md mx-auto mb-8">
-            <h3 className="text-gray-100">Ajouter un nouveau produit</h3>
+        <div className="bg-white/10 relative backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-6 max-w-md mx-auto mb-8">
+            <button
+                type='button'
+                onClick={() => onCancel()}
+                className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl"
+            >
+                ✕
+            </button>
+            <h3 className="text-gray-100 text-center p-8">Ajouter un nouveau produit</h3>
             <form className='text-gray-100' onSubmit={handleSubmit}>
                 <div className='mb-4' >
                     <label>Nom du produit :</label>
