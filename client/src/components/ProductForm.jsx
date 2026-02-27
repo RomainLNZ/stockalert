@@ -49,7 +49,7 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
 
     // 3. Crée le JSX avec le formulaire
     return (
-        <div className="bg-white/10 relative backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-6 max-w-md mx-auto mb-8">
+        <div className="bg-blue/10 relative backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-6 max-w-md mx-auto mb-8">
             <button
                 type='button'
                 onClick={() => onCancel()}

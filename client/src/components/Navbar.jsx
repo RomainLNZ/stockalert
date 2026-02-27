@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
-function Navbar() {
+function Navbar({ setIsAddModalOpen }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -34,13 +34,12 @@ function Navbar() {
                         >
                             📊 Dashboard
                         </Link>
-                        <Link
-                            to="/add"
-                            onClick={() => setIsMenuOpen(false)}
+                        <button
+                            onClick={() => { setIsAddModalOpen(true); setIsMenuOpen(false); }}
                             className="px-4 py-3 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-3"
                         >
                             ➕ Ajouter un produit
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>
