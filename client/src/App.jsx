@@ -45,8 +45,9 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && isAddModalOpen) {
-        setIsAddModalOpen(false);
+      if (event.key === 'Escape') {
+        if (isAddModalOpen) setIsAddModalOpen(false);
+        if (editingProduct) setEditingProduct(null);
       }
     };
 
@@ -55,8 +56,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isAddModalOpen]);
-
+  }, [isAddModalOpen, editingProduct]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-indigo-900 to-blue-950 p-8 text-white">
@@ -91,15 +91,6 @@ function App() {
         />
       </Routes>
 
-      {editingProduct ? (
-        <ProductEditForm
-          product={editingProduct}
-          onProductUpdated={fetchProducts}
-          onCancel={() => setEditingProduct(null)}
-          onShowToast={showToast}
-        />
-      ) : null}
-
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
         <ProductForm
           onProductCreated={() => {
@@ -109,6 +100,17 @@ function App() {
           onCancel={() => setIsAddModalOpen(false)}
           onShowToast={showToast}
         />
+      </Modal>
+
+      <Modal isOpen={!!editingProduct} onClose={() => setEditingProduct(null)}>
+        {editingProduct && (
+          <ProductEditForm
+            product={editingProduct}
+            onProductUpdated={fetchProducts}
+            onCancel={() => setEditingProduct(null)}
+            onShowToast={showToast}
+          />
+        )}
       </Modal>
 
     </div>
