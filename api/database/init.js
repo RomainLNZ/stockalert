@@ -25,27 +25,24 @@ function initDatabase() {
   db.exec(createTableQuery);
   console.log('✅ Table "products" créée ou déjà existante');
 
+  const createUsersTableQuery = `
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.exec(createUsersTableQuery);
+  console.log('✅ Table "users" créée ou déjà existante');
+
   // Vérifier s'il y a déjà des données
-  const count = db.prepare('SELECT COUNT(*) as count FROM products').get();
+  const countUsers = db.prepare('SELECT COUNT(*) as count FROM users').get();
+  const countProducts = db.prepare('SELECT COUNT(*) as count FROM products').get();
   
-  if (count.count === 0) {
-    console.log('📝 Insertion de données de test...');
-    
-    // Insérer des données de test
-    const insert = db.prepare(`
-      INSERT INTO products (name, stock, minimum) 
-      VALUES (?, ?, ?)
-    `);
-
-    insert.run('Clavier mécanique', 15, 5);
-    insert.run('Souris sans fil', 8, 10);
-    insert.run('Écran 24 pouces', 3, 5);
-    
-    console.log('✅ Données de test insérées');
-  } else {
-    console.log(`ℹ️  La base contient déjà ${count.count} produit(s)`);
-  }
-
+  console.log(`ℹ️  La base contient déjà ${countUsers.count} utilisateur(s)`);
+  console.log(`ℹ️  La base contient déjà ${countProducts.count} produit(s)`);
   console.log('✅ Base de données prête !');
 }
 
