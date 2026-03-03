@@ -59,7 +59,7 @@ router.post('/', (req, res) => {
     }
 });
 
-router.put('/:id', (req, res) => {  // ✅ Ajout de /:id
+router.put('/:id', (req, res) => {
     console.log("✏️ PUT /api/products/:id - Modification d'un produit");
 
     const id = req.params.id;
