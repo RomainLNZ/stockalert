@@ -7,6 +7,7 @@ import ProductEditForm from './components/ProductEditForm'
 import Toast from './components/Toast';
 import ProductForm from './components/ProductForm';
 import Modal from './components/Modal';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -74,6 +75,8 @@ function App() {
       )}
 
       <Routes>
+        <Route path="/login" element={<LoginPage onShowToast={showToast} />} />
+        <Route path="/signup" element={<SignupPage onShowToast={showToast} />} />
         <Route path="/" element={<Dashboard
           products={products}
           loading={loading}
