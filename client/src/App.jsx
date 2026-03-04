@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import AddProduct from './pages/AddProduct';
@@ -8,10 +8,13 @@ import Toast from './components/Toast';
 import ProductForm from './components/ProductForm';
 import Modal from './components/Modal';
 import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -60,11 +63,11 @@ function App() {
   }, [isAddModalOpen, editingProduct]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-indigo-900 to-blue-950 p-8 text-white">
-
-      <Navbar
-        setIsAddModalOpen={setIsAddModalOpen}
-      />
+    <div className={`min-h-screen bg-gradient-to-br from-blue-950 via-indigo-900 to-blue-950 ${isAuthPage ? '' : 'p-8'} text-white`}>
+      {!isAuthPage && (
+        <Navbar
+          setIsAddModalOpen={setIsAddModalOpen}
+        />)}
 
       {toast && (
         <Toast
