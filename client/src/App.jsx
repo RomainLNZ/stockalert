@@ -9,6 +9,7 @@ import ProductForm from './components/ProductForm';
 import Modal from './components/Modal';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -80,20 +81,29 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage onShowToast={showToast} />} />
         <Route path="/signup" element={<SignupPage onShowToast={showToast} />} />
-        <Route path="/" element={<Dashboard
-          products={products}
-          loading={loading}
-          error={error}
-          onProductDeleted={fetchProducts}
-          setEditingProduct={setEditingProduct}
-          setIsAddModalOpen={setIsAddModalOpen}
-        />}
+
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Dashboard
+              products={products}
+              loading={loading}
+              error={error}
+              onProductDeleted={fetchProducts}
+              setEditingProduct={setEditingProduct}
+              setIsAddModalOpen={setIsAddModalOpen}
+            />
+          </ProtectedRoute>
+          }
         />
 
-        <Route path="/add" element={<AddProduct
-          onProductCreated={fetchProducts}
-          onShowToast={showToast}
-        />}
+        <Route path="/add" element={
+          <ProtectedRoute>
+            <AddProduct
+              onProductCreated={fetchProducts}
+              onShowToast={showToast}
+            />
+          </ProtectedRoute>
+        }
         />
       </Routes>
 
