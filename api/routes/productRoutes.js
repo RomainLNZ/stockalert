@@ -1,12 +1,13 @@
 const express = require('express');
 const { db, initDatabase } = require('../database/init');
+const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', authenticateToken, (req, res) => {
     console.log("📦 GET /api/products - Lecture depuis la BDD");
 
     try {
-        const products = db.prepare('SELECT * FROM products').all();
+        const products = db.prepare('SELECT * FROM products WHERE user_id = ?').all(req.user.id);
         res.json(products);
     } catch (error) {
         console.error("Erreur BDD:", error);
@@ -14,13 +15,13 @@ router.get('/', (req, res) => {
     }
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', authenticateToken, (req, res) => {
     console.log("📦 GET /api/products/:id - Lecture depuis la BDD");
 
     const id = req.params.id;
 
     try {
-        const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+        const product = db.prepare('SELECT * FROM products WHERE id = ? AND user_id = ?').get(id, req.user.id);
     
         if (!product) {
             return res.status(404).json({ error: 'Produit introuvable' });
@@ -33,7 +34,7 @@ router.get('/:id', (req, res) => {
     }
 });
 
-router.post('/', (req, res) => {
+router.post('/', authenticateToken, (req, res) => {
     console.log("➕ POST /api/products - Création d'un produit");
 
     const { name, stock, minimum } = req.body;
@@ -46,10 +47,10 @@ router.post('/', (req, res) => {
 
     try {
         const insert = db.prepare(`
-            INSERT INTO products (name, stock, minimum) 
-            VALUES (?, ?, ?)
+            INSERT INTO products (name, stock, minimum, user_id) 
+            VALUES (?, ?, ?, ?)
         `);
-        const result = insert.run(name, stock, minimum);
+        const result = insert.run(name, stock, minimum, req.user.id);
         const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
         
         res.status(201).json(newProduct);
@@ -59,7 +60,7 @@ router.post('/', (req, res) => {
     }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', authenticateToken, (req, res) => {
     console.log("✏️ PUT /api/products/:id - Modification d'un produit");
 
     const id = req.params.id;
@@ -73,7 +74,7 @@ router.put('/:id', (req, res) => {
         });
     }
 
-    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    const product = db.prepare('SELECT * FROM products WHERE id = ? AND user_id = ?').get(id, req.user.id);
 
     if (!product) {
         return res.status(404).json({ error: 'Produit introuvable' });
@@ -96,13 +97,13 @@ router.put('/:id', (req, res) => {
     }
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', authenticateToken, (req, res) => {
     console.log("🗑️ DELETE /api/products/:id - Suppression d'un produit");
 
     const id = req.params.id;
 
     try  {
-        const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+        const product = db.prepare('SELECT * FROM products WHERE id = ? AND user_id = ?').get(id, req.user.id);
 
         if (!product) {
         return res.status(404).json({ error: 'Produit introuvable'});

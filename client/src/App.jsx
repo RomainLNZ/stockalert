@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { fetchWithAuth } from './utils/api';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import AddProduct from './pages/AddProduct';
@@ -23,7 +24,7 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products');
+      const response = await fetchWithAuth('/api/products');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -45,8 +46,10 @@ function App() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (!isAuthPage) {
+      fetchProducts();
+    }
+  }, [isAuthPage]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -93,7 +96,7 @@ function App() {
               setIsAddModalOpen={setIsAddModalOpen}
             />
           </ProtectedRoute>
-          }
+        }
         />
 
         <Route path="/add" element={

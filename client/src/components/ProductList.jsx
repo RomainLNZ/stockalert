@@ -1,3 +1,5 @@
+import { fetchWithAuth } from '../utils/api';
+
 function ProductList({ products, loading, error, onProductDeleted, setEditingProduct }) {
     if (loading) return <div>Chargement des produits...</div>;
     if (error) return <div>Erreur : {error}</div>;
@@ -6,7 +8,7 @@ function ProductList({ products, loading, error, onProductDeleted, setEditingPro
         if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+            const response = await fetchWithAuth(`/api/products/${productId}`, {
                 method: "DELETE",
             });
 

@@ -13,7 +13,7 @@ function Navbar({ setIsAddModalOpen }) {
     };
 
     return (
-        <nav className="relative mb-8">
+        <nav className="relative z-50 mb-8">
             <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl">
                 <div className="flex items-center justify-between p-4 max-w-7xl mx-auto">
                     <div className="flex items-center gap-3">
@@ -43,7 +43,7 @@ function Navbar({ setIsAddModalOpen }) {
 
                     <div className={`
                         absolute top-full right-0 mt-2 w-80
-                        bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl
+                        bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl
                         overflow-hidden transition-all duration-500 ease-out origin-top-right
                         ${isMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}
                     `}>

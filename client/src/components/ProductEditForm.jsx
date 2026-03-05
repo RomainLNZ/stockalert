@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { fetchWithAuth } from '../utils/api';
 
 function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
 
@@ -19,7 +20,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
 
 
         try {
-            const response = await fetch(`http://localhost:5000/api/products/${product.id}`, {
+            const response = await fetchWithAuth(`/api/products/${product.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -46,7 +47,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
         e.preventDefault();
         const newStock = product.stock + Number(quantity)
         try {
-            const response = await fetch(`http://localhost:5000/api/products/${product.id}`, {
+            const response = await fetchWithAuth(`/api/products/${product.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -84,7 +85,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/products/${product.id}`, {
+            const response = await fetchWithAuth(`/api/products/${product.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
