@@ -40,7 +40,7 @@ function ProductList({ products, loading, error, onProductDeleted, setEditingPro
                         <div className="h-full flex flex-col justify-between">
                             <div>
                                 <div className="font-semibold text-lg truncate">{product.name}</div>
-                                <div className="font-semibold text-lg truncate">{product.description}</div>
+                                <div className="text-xs truncate">{product.description}</div>
 
                                 <div className="mt-2 text-sm">
                                     Stock: <span className="font-medium">{product.stock}</span>{" "}
