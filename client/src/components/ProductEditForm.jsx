@@ -8,6 +8,8 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
     const [formData, setFormData] = useState({
         id: product.id,
         name: product.name,
+        description: product.description,
+        stock: product.stock,
         minimum: product.minimum
     });
 
@@ -25,6 +27,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: formData.name,
+                    description: formData.description,
                     stock: product.stock,
                     minimum: Number(formData.minimum)
                 })
@@ -52,6 +55,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: formData.name,
+                    description: formData.description,
                     stock: newStock,
                     minimum: Number(formData.minimum)
                 })
@@ -90,6 +94,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: formData.name,
+                    description: formData.description,
                     stock: newStock,
                     minimum: Number(formData.minimum)
                 })
@@ -126,6 +131,18 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
                     />
                 </div>
+
+                <div className='mb-4' >
+                    <label>Description :</label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows="3"
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
+                    />
+                </div>
+
 
                 <div className='mb-4' >
                     <label>Seuil d'alerte :</label>

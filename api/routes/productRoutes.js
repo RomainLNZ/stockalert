@@ -37,20 +37,20 @@ router.get('/:id', authenticateToken, (req, res) => {
 router.post('/', authenticateToken, (req, res) => {
     console.log("➕ POST /api/products - Création d'un produit");
 
-    const { name, stock, minimum } = req.body;
+    const { name, description, stock, minimum } = req.body;
 
     if (!name || stock === undefined || minimum === undefined) {
         return res.status(400).json({ 
-            error: 'Données manquantes (name, stock, minimum requis)' 
+            error: 'Données manquantes (name, description, stock, minimum requis)' 
         });
     }
 
     try {
         const insert = db.prepare(`
-            INSERT INTO products (name, stock, minimum, user_id) 
-            VALUES (?, ?, ?, ?)
+            INSERT INTO products (name, description, stock, minimum, user_id) 
+            VALUES (?, ?, ?, ?, ?)
         `);
-        const result = insert.run(name, stock, minimum, req.user.id);
+        const result = insert.run(name, description, stock, minimum, req.user.id);
         const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
         
         res.status(201).json(newProduct);
@@ -64,7 +64,7 @@ router.put('/:id', authenticateToken, (req, res) => {
     console.log("✏️ PUT /api/products/:id - Modification d'un produit");
 
     const id = req.params.id;
-    const { name, stock, minimum } = req.body;
+    const { name, description, stock, minimum } = req.body;
 
     try {
 
@@ -80,8 +80,9 @@ router.put('/:id', authenticateToken, (req, res) => {
         return res.status(404).json({ error: 'Produit introuvable' });
     }
 
-    db.prepare('UPDATE products SET name = ?, stock = ?, minimum = ? WHERE id = ?').run(
+    db.prepare('UPDATE products SET name = ?, description = ?, stock = ?, minimum = ? WHERE id = ?').run(
         name,
+        description,
         stock,
         minimum,
         id

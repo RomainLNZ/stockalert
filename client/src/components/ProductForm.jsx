@@ -5,6 +5,7 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
     // 1. Crée le state formData
     const [formData, setFormData] = useState({
         name: '',
+        description: '',
         stock: '',
         minimum: ''
     });
@@ -18,6 +19,7 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
                 method: 'POST',
                 body: JSON.stringify({
                     name: formData.name,
+                    description: formData.description,
                     stock: Number(formData.stock),
                     minimum: Number(formData.minimum)
                 })
@@ -35,6 +37,7 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
             // Vider le formulaire
             setFormData({
                 name: '',
+                description: '',
                 stock: '',
                 minimum: ''
             });
@@ -65,6 +68,16 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
+                    />
+                </div>
+                <div className='mb-4' >
+                    <label>description :</label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows="3"
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
                     />
                 </div>

@@ -32,6 +32,7 @@ function initDatabase() {
     CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      description VARCHAR(255),
       stock INTEGER NOT NULL DEFAULT 0,
       minimum INTEGER NOT NULL DEFAULT 0,
       user_id INTEGER NOT NULL,
