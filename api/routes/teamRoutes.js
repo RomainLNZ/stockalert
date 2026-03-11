@@ -44,4 +44,22 @@ router.post('/', authenticateToken, (req, res) => {
     }
 });
 
+router.get('/', authenticateToken, (req, res) => {
+    console.log("📋 GET /api/teams - Récupération des teams de l'user");
+
+    try {
+        // TOI : Écris la requête SQL avec JOIN
+        const teams = db.prepare(`
+            SELECT teams.*
+            FROM teams
+            JOIN team_members ON teams.id = team_members.team_id
+            WHERE team_members.user_id = ?
+        `).all(req.user.id);
+        res.json(teams);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des teams :", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 module.exports = router;
