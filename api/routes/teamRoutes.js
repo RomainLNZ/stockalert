@@ -62,4 +62,54 @@ router.get('/', authenticateToken, (req, res) => {
     }
 });
 
+router.post('/:teamId/members', authenticateToken, (req, res) => {
+    console.log("➕ POST /api/team-members - Ajouter un membre à une team");
+
+    const teamId = req.params.teamId;
+    const { email } = req.body;
+
+    if (!teamId || !email) {
+        return res.status(400).json({ 
+            error: 'teamId et email sont requis' 
+        });
+    }
+
+    try {
+        // Vérifier que la team existe et que l'utilisateur est owner
+        const team = db.prepare(`
+            SELECT teams.*, team_members.role
+            FROM teams
+            JOIN team_members ON teams.id = team_members.team_id
+            WHERE teams.id = ? AND team_members.user_id = ?
+        `).get(teamId, req.user.id);
+        if (!team) {
+            return res.status(404).json({ error: 'Team introuvable' });
+        }
+        if (team.role !== 'owner') {
+            return res.status(403).json({ error: 'Droits insuffisants pour ajouter un membre à cette team' });
+        }
+        // Vérifier que le teammate existe
+        const teammate = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+        if (!teammate) {
+            return res.status(404).json({ error: 'Utilisateur à ajouter introuvable' });
+        }
+        // Vérifier que le teammate n'est pas déjà membre
+        const existingMembership = db.prepare('SELECT id FROM team_members WHERE team_id = ? AND user_id = ?').get(teamId, teammate.id);
+        if (existingMembership) {
+            return res.status(409).json({ error: 'Cet utilisateur est déjà membre de la team' });
+        }
+        // Ajouter le membre à la team
+        const insertMember = db.prepare(`
+            INSERT INTO team_members (user_id, team_id, role) 
+            VALUES (?, ?, ?)
+        `);
+        insertMember.run(teammate.id, teamId, 'member');
+        res.status(201).json({ message: 'Membre ajouté à la team avec succès' });
+    } catch (error) {
+        console.error("Erreur lors de l'ajout du membre à la team :", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+
 module.exports = router;
