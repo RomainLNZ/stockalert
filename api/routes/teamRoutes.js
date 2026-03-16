@@ -48,7 +48,6 @@ router.get('/', authenticateToken, (req, res) => {
     console.log("📋 GET /api/teams - Récupération des teams de l'user");
 
     try {
-        // TOI : Écris la requête SQL avec JOIN
         const teams = db.prepare(`
             SELECT teams.*
             FROM teams
@@ -107,6 +106,48 @@ router.post('/:teamId/members', authenticateToken, (req, res) => {
         res.status(201).json({ message: 'Membre ajouté à la team avec succès' });
     } catch (error) {
         console.error("Erreur lors de l'ajout du membre à la team :", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+router.delete('/:teamId/members/:userId', authenticateToken, (req, res) => {
+    console.log("➖ DELETE /api/team-members - Retirer un membre d'une team");
+
+    const teamId = req.params.teamId;
+    const userId = req.params.userId;
+
+    if (!teamId || !userId) {
+        return res.status(400).json({ 
+            error: 'teamId et userId sont requis' 
+        });
+    }
+
+    try {
+        // Vérifier que la team existe et que l'utilisateur est owner
+        const team = db.prepare(`SELECT teams.*, team_members.role
+            FROM teams
+            JOIN team_members ON teams.id = team_members.team_id
+            WHERE teams.id = ? AND team_members.user_id = ?`).get(teamId, req.user.id);
+        // Vérifier que le membre existe
+        const member = db.prepare('SELECT id FROM team_members WHERE team_id = ? AND user_id = ?').get(teamId, userId);
+        if (!team) {
+            return res.status(404).json({ error: 'Team introuvable' });
+        }
+        if (!member) {
+            return res.status(404).json({ error: 'Membre non trouvé dans cette team' });
+        }
+        if (team.role !== 'owner') {
+            return res.status(403).json({ error: 'Droits insuffisants pour retirer un membre de cette team' });
+        }
+        if (userId === req.user.id && team.role === 'owner') {
+            return res.status(403).json({ error: 'Vous ne pouvez pas vous retirer de la team si vous êtes owner' });
+        }
+        // Retirer le membre de la team
+        const deleteMember = db.prepare('DELETE FROM team_members WHERE team_id = ? AND user_id = ?');
+        deleteMember.run(teamId, userId);
+        res.json({ message: 'Membre retiré de la team avec succès' });
+    } catch (error) {
+        console.error("Erreur lors du retrait du membre de la team :", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
