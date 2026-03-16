@@ -152,5 +152,41 @@ router.delete('/:teamId/members/:userId', authenticateToken, (req, res) => {
     }
 });
 
+router.get('/:teamId/members', authenticateToken, (req, res) => {
+    console.log("📋 GET /api/team-members - Récupération des membres d'une team");
+
+    const teamId = req.params.teamId;
+    const userId = req.user.id;
+
+    if (!teamId) {
+        return res.status(400).json({ error: 'teamId est requis' });
+    }
+
+    try {
+        // Vérifier que la team existe et que l'utilisateur est membre
+        const team = db.prepare(`
+            SELECT teams.*, team_members.role
+            FROM teams
+            JOIN team_members ON teams.id = team_members.team_id
+            WHERE teams.id = ? AND team_members.user_id = ?
+        `).get(teamId, userId);
+        if (!team) {
+            return res.status(404).json({ error: 'Team introuvable ou utilisateur non membre' });
+        }
+
+        // Récupérer les membres de la team
+        const members = db.prepare(`
+            SELECT users.id, users.email, team_members.role, team_members.created_at AS joined_at
+            FROM team_members
+            JOIN users ON team_members.user_id = users.id
+            WHERE team_members.team_id = ?
+        `).all(teamId);
+        res.json({ members });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des membres de la team :", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 
 module.exports = router;
