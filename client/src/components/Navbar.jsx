@@ -1,13 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import TeamSelector from './TeamSelector';
 
-function Navbar({ setIsAddModalOpen }) {
+
+function Navbar({ setIsAddProductModalOpen, setIsAddTeamModalOpen }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        localStorage.clear();
         setIsMenuOpen(false);
         navigate('/login');
     };
@@ -21,6 +22,11 @@ function Navbar({ setIsAddModalOpen }) {
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
                             StockAlert
                         </h1>
+                    </div>
+
+
+                    <div className="flex-1 max-w-xs mx-4">
+                        <TeamSelector setIsAddTeamModalOpen={setIsAddTeamModalOpen} />
                     </div>
 
                     <button
@@ -44,10 +50,11 @@ function Navbar({ setIsAddModalOpen }) {
                     <div className={`
                         absolute top-full right-0 mt-2 w-80
                         bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl
-                        overflow-hidden transition-all duration-500 ease-out origin-top-right
+                        overflow-visible transition-all duration-500 ease-out origin-top-right z-[60]
                         ${isMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}
                     `}>
                         <div className="p-4 flex flex-col gap-2">
+
                             <Link
                                 to="/"
                                 onClick={() => setIsMenuOpen(false)}
@@ -63,7 +70,7 @@ function Navbar({ setIsAddModalOpen }) {
 
                             <button
                                 onClick={() => {
-                                    setIsAddModalOpen(true);
+                                    setIsAddProductModalOpen(true);
                                     setIsMenuOpen(false);
                                 }}
                                 className="group px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 
@@ -75,6 +82,8 @@ function Navbar({ setIsAddModalOpen }) {
                                 <span className="text-xl group-hover:scale-110 transition-transform">➕</span>
                                 <span className="font-medium">Ajouter un produit</span>
                             </button>
+
+
 
                             <button
                                 onClick={handleLogout}

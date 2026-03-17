@@ -1,79 +1,65 @@
 import { fetchWithAuth } from '../utils/api';
 
-function ProductList({ products, loading, error, onProductDeleted, setEditingProduct }) {
-    if (loading) return <div>Chargement des produits...</div>;
-    if (error) return <div>Erreur : {error}</div>;
+function ProductList({ products, onProductDeleted, setEditingProduct }) {
+    
+    async function handleDelete(productId) {
+        if (!window.confirm('Voulez-vous vraiment supprimer ce produit ?')) {
+            return;
+        }
 
-    const handleDelete = async (productId) => {
-        if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) return;
+        const activeTeamId = localStorage.getItem('activeTeamId');
+        if (!activeTeamId) {
+            alert('Veuillez sélectionner une team');
+            return;
+        }
 
         try {
-            const response = await fetchWithAuth(`/api/products/${productId}`, {
-                method: "DELETE",
+            const response = await fetchWithAuth(`/api/products/${productId}?team_id=${activeTeamId}`, {
+                method: 'DELETE'
             });
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             onProductDeleted();
-        } catch (erreur) {
-            console.error("Erreur lors de la suppression du produit :", erreur);
-            alert("Erreur : " + erreur.message);
+        } catch (error) {
+            console.error("Erreur lors de la suppression :", error);
+            alert("Erreur : " + error.message);
         }
-    };
+    }
 
     return (
-        <div>
-            <h2 className="text-gray-100">Liste des produits :</h2>
-
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-4xl mx-auto">
-                {products.map((product) => (
-                    <div
-                        key={product.id}
-                        className={`
-                            bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-4
-                            transition-all duration-300 ease-in-out hover:bg-white/20 hover:shadow-xl hover:-translate-y-0.5 
-                            ${product.stock < product.minimum ? "text-red-600" : "text-gray-100"}
-                            max-w-[260px] w-full
-                            aspect-square
-                        `}
-                    >
-                        <div className="h-full flex flex-col justify-between">
-                            <div>
-                                <div className="font-semibold text-lg truncate">{product.name}</div>
-                                <div className="text-xs truncate">{product.description}</div>
-
-                                <div className="mt-2 text-sm">
-                                    Stock: <span className="font-medium">{product.stock}</span>{" "}
-                                    <span className="opacity-70">(Min: {product.minimum})</span>
-                                </div>
-
-                                {product.stock < product.minimum && (
-                                    <div className="mt-3 text-orange-500 font-bold">
-                                        ⚠️ ALERTE
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="mt-4 flex gap-2 justify-end">
-                                <button
-                                    className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition"
-                                    onClick={() => setEditingProduct(product)}
-                                    title="Modifier"
-                                >
-                                    ✏️
-                                </button>
-                                <button
-                                    className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition"
-                                    onClick={() => handleDelete(product.id)}
-                                    title="Supprimer"
-                                >
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {products.map(product => (
+                <div key={product.id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition">
+                    <h3 className="text-xl font-bold mb-2">{product.name}</h3>
+                    {product.description && (
+                        <p className="text-gray-400 mb-4">{product.description}</p>
+                    )}
+                    <div className="space-y-2">
+                        <p>Stock: <span className="font-bold">{product.stock}</span></p>
+                        <p>Minimum: <span className="font-bold">{product.minimum}</span></p>
+                        {product.stock <= product.minimum && (
+                            <p className="text-red-400 font-bold">⚠️ Stock faible !</p>
+                        )}
                     </div>
-                ))}
-            </div>
+                    <div className="mt-4 flex gap-2">
+                        <button
+                            onClick={() => setEditingProduct(product)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                        >
+                            ✏️ Modifier
+                        </button>
+                        <button
+                            onClick={() => handleDelete(product.id)}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
+                        >
+                            🗑️ Supprimer
+                        </button>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }

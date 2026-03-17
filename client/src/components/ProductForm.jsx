@@ -2,17 +2,22 @@ import { useState } from 'react';
 import { fetchWithAuth } from '../utils/api';
 
 function ProductForm({ onProductCreated, onShowToast, onCancel }) {
-    // 1. Crée le state formData
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        stock: '',
-        minimum: ''
+        stock: 0,
+        minimum: 0
     });
 
     async function handleSubmit(e) {
         e.preventDefault();
         console.log('Données du formulaire :', formData);
+
+        const activeTeamId = localStorage.getItem('activeTeamId');
+        if (!activeTeamId) {
+            alert('Veuillez sélectionner une team avant de créer un produit');
+            return;
+        }
 
         try {
             const response = await fetchWithAuth('/api/products', {
@@ -21,7 +26,8 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
                     name: formData.name,
                     description: formData.description,
                     stock: Number(formData.stock),
-                    minimum: Number(formData.minimum)
+                    minimum: Number(formData.minimum),
+                    team_id: Number(activeTeamId)
                 })
             });
 
@@ -30,16 +36,15 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
             }
 
             const data = await response.json();
-            onProductCreated()
+            onProductCreated();
             onShowToast("✅ Produit créé avec succès: " + data.name, 'success');
             console.log("Produit créé avec succès :", data);
 
-            // Vider le formulaire
             setFormData({
                 name: '',
                 description: '',
-                stock: '',
-                minimum: ''
+                stock: 0,
+                minimum: 0
             });
 
         } catch (erreur) {
@@ -48,7 +53,6 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
         }
     }
 
-    // 3. Crée le JSX avec le formulaire
     return (
         <div className="bg-blue/10 relative backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-6 max-w-md mx-auto mb-8">
             <button
@@ -60,7 +64,7 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
             </button>
             <h3 className="text-gray-100 text-center p-8">Ajouter un nouveau produit</h3>
             <form className='text-gray-100' onSubmit={handleSubmit}>
-                <div className='mb-4' >
+                <div className='mb-4'>
                     <label>Nom du produit :</label>
                     <input
                         type="text"
@@ -71,19 +75,20 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
                     />
                 </div>
-                <div className='mb-4' >
-                    <label>description :</label>
+
+                <div className='mb-4'>
+                    <label>Description :</label>
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows="3"
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
+                        rows="3"
                     />
                 </div>
 
-                <div className='mb-4' >
-                    <label>Stock initial :</label>
+                <div className='mb-4'>
+                    <label>Stock :</label>
                     <input
                         type="number"
                         name="stock"
@@ -94,8 +99,8 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
                     />
                 </div>
 
-                <div className='mb-4' >
-                    <label>Seuil d'alerte (minimum) :</label>
+                <div className='mb-4'>
+                    <label>Minimum :</label>
                     <input
                         type="number"
                         name="minimum"
@@ -110,7 +115,8 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
                     type="submit"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors mt-2"
                 >
-                    Créer le produit</button>
+                    Créer le produit
+                </button>
             </form>
         </div>
     );

@@ -1,13 +1,19 @@
 const express = require('express');
-const { db, initDatabase } = require('../database/init');
+const { db } = require('../database/init');
 const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/', authenticateToken, (req, res) => {
     console.log("📦 GET /api/products - Lecture depuis la BDD");
 
+    const { team_id } = req.query;
+    
+    if (!team_id) {
+        return res.status(400).json({ error: 'team_id requis' });
+    }
+
     try {
-        const products = db.prepare('SELECT * FROM products WHERE user_id = ?').all(req.user.id);
+        const products = db.prepare('SELECT * FROM products WHERE team_id = ?').all(team_id);
         res.json(products);
     } catch (error) {
         console.error("Erreur BDD:", error);
@@ -16,20 +22,23 @@ router.get('/', authenticateToken, (req, res) => {
 });
 
 router.get('/:id', authenticateToken, (req, res) => {
-    console.log("📦 GET /api/products/:id - Lecture depuis la BDD");
-
-    const id = req.params.id;
+    const { id } = req.params;
+    const { team_id } = req.query;
+    
+    if (!team_id) {
+        return res.status(400).json({ error: 'team_id requis' });
+    }
 
     try {
-        const product = db.prepare('SELECT * FROM products WHERE id = ? AND user_id = ?').get(id, req.user.id);
-    
+        const product = db.prepare('SELECT * FROM products WHERE id = ? AND team_id = ?').get(id, team_id);
+        
         if (!product) {
-            return res.status(404).json({ error: 'Produit introuvable' });
+            return res.status(404).json({ error: 'Produit non trouvé' });
         }
-    
+        
         res.json(product);
     } catch (error) {
-        console.error("Erreur:", error);
+        console.error("Erreur BDD:", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
@@ -37,20 +46,26 @@ router.get('/:id', authenticateToken, (req, res) => {
 router.post('/', authenticateToken, (req, res) => {
     console.log("➕ POST /api/products - Création d'un produit");
 
-    const { name, description, stock, minimum } = req.body;
+    const { name, description, stock, minimum, team_id } = req.body;
 
     if (!name || stock === undefined || minimum === undefined) {
         return res.status(400).json({ 
-            error: 'Données manquantes (name, description, stock, minimum requis)' 
+            error: 'Les champs name, stock et minimum sont requis' 
         });
+    }
+
+    if (!team_id) {
+        return res.status(400).json({ error: 'team_id requis' });
     }
 
     try {
         const insert = db.prepare(`
-            INSERT INTO products (name, description, stock, minimum, user_id) 
+            INSERT INTO products (name, description, stock, minimum, team_id) 
             VALUES (?, ?, ?, ?, ?)
         `);
-        const result = insert.run(name, description, stock, minimum, req.user.id);
+        
+        const result = insert.run(name, description, stock, minimum, team_id);
+        
         const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
         
         res.status(201).json(newProduct);
@@ -62,63 +77,68 @@ router.post('/', authenticateToken, (req, res) => {
 
 router.put('/:id', authenticateToken, (req, res) => {
     console.log("✏️ PUT /api/products/:id - Modification d'un produit");
-
-    const id = req.params.id;
-    const { name, description, stock, minimum } = req.body;
-
-    try {
+    
+    const { id } = req.params;
+    const { name, description, stock, minimum, team_id } = req.body;
 
     if (!name || stock === undefined || minimum === undefined) {
         return res.status(400).json({ 
-            error: 'Données manquantes (name, stock, minimum requis)' 
+            error: 'Les champs name, stock et minimum sont requis' 
         });
     }
 
-    const product = db.prepare('SELECT * FROM products WHERE id = ? AND user_id = ?').get(id, req.user.id);
-
-    if (!product) {
-        return res.status(404).json({ error: 'Produit introuvable' });
+    if (!team_id) {
+        return res.status(400).json({ error: 'team_id requis' });
     }
 
-    db.prepare('UPDATE products SET name = ?, description = ?, stock = ?, minimum = ? WHERE id = ?').run(
-        name,
-        description,
-        stock,
-        minimum,
-        id
-    );
+    try {
+        const product = db.prepare('SELECT * FROM products WHERE id = ? AND team_id = ?').get(id, team_id);
+        
+        if (!product) {
+            return res.status(404).json({ error: 'Produit non trouvé ou vous n\'avez pas accès' });
+        }
 
-    const updatedProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
-
-    res.json(updatedProduct);
-
+        const update = db.prepare(`
+            UPDATE products 
+            SET name = ?, description = ?, stock = ?, minimum = ? 
+            WHERE id = ? AND team_id = ?
+        `);
+        
+        update.run(name, description, stock, minimum, id, team_id);
+        
+        const updatedProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+        
+        res.json(updatedProduct);
     } catch (error) {
         console.error("Erreur de mise à jour:", error);
-        res.status(500).json({ error: 'Erreur lors de la mise à jour du produit' });
+        res.status(500).json({ error: 'Erreur lors de la mise à jour' });
     }
 });
 
 router.delete('/:id', authenticateToken, (req, res) => {
     console.log("🗑️ DELETE /api/products/:id - Suppression d'un produit");
+    
+    const { id } = req.params;
+    const { team_id } = req.query;
 
-    const id = req.params.id;
-
-    try  {
-        const product = db.prepare('SELECT * FROM products WHERE id = ? AND user_id = ?').get(id, req.user.id);
-
-        if (!product) {
-        return res.status(404).json({ error: 'Produit introuvable'});
+    if (!team_id) {
+        return res.status(400).json({ error: 'team_id requis' });
     }
 
-    db.prepare('DELETE FROM products WHERE id = ?').run(id);
+    try {
+        const product = db.prepare('SELECT * FROM products WHERE id = ? AND team_id = ?').get(id, team_id);
+        
+        if (!product) {
+            return res.status(404).json({ error: 'Produit non trouvé ou vous n\'avez pas accès' });
+        }
 
-    res.json({ message: 'Produit supprimé avec succès',
-        deletedProduct: product
-    });
-
+        const deleteStmt = db.prepare('DELETE FROM products WHERE id = ? AND team_id = ?');
+        deleteStmt.run(id, team_id);
+        
+        res.json({ message: 'Produit supprimé avec succès' });
     } catch (error) {
         console.error("Erreur de suppression:", error);
-        res.status(500).json({ error: 'Erreur lors de la suppression du produit' });
+        res.status(500).json({ error: 'Erreur lors de la suppression' });
     }
 });
 

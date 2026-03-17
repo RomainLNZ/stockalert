@@ -7,6 +7,7 @@ import AddProduct from './pages/AddProduct';
 import ProductEditForm from './components/ProductEditForm'
 import Toast from './components/Toast';
 import ProductForm from './components/ProductForm';
+import TeamForm from './components/TeamForm';
 import Modal from './components/Modal';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -19,25 +20,45 @@ function App() {
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   const fetchProducts = async () => {
     try {
-      const response = await fetchWithAuth('/api/products');
+      const activeTeamId = localStorage.getItem('activeTeamId');
+
+      if (!activeTeamId) {
+        console.log('Aucune team sélectionnée');
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetchWithAuth(`/api/products?team_id=${activeTeamId}`);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const data = await response.json();
-
       console.log("Produits récupérés :", data);
-
       setProducts(data);
       setLoading(false);
     } catch (error) {
       console.error("Erreur lors de la récupération des produits :", error);
       setError("Impossible de charger les produits : " + error.message);
       setLoading(false);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const response = await fetchWithAuth('/api/teams');
+      const data = await response.json();
+      console.log("Teams récupérés :", data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des teams :", error);
     }
   };
 
@@ -49,12 +70,22 @@ function App() {
     if (!isAuthPage) {
       fetchProducts();
     }
+
+    const handleTeamChanged = () => {
+      fetchProducts();
+    };
+    window.addEventListener('teamChanged', handleTeamChanged);
+
+    return () => {
+      window.removeEventListener('teamChanged', handleTeamChanged);
+    };
   }, [isAuthPage]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
-        if (isAddModalOpen) setIsAddModalOpen(false);
+        if (isAddProductModalOpen) setIsAddProductModalOpen(false);
+        if (isAddTeamModalOpen) setIsAddTeamModalOpen(false);
         if (editingProduct) setEditingProduct(null);
       }
     };
@@ -64,14 +95,16 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isAddModalOpen, editingProduct]);
+  }, [isAddProductModalOpen, isAddTeamModalOpen, editingProduct]);
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-950 via-indigo-900 to-blue-950 ${isAuthPage ? '' : 'p-8'} text-white`}>
       {!isAuthPage && (
         <Navbar
-          setIsAddModalOpen={setIsAddModalOpen}
-        />)}
+          setIsAddProductModalOpen={setIsAddProductModalOpen}
+          setIsAddTeamModalOpen={setIsAddTeamModalOpen}
+        />
+      )}
 
       {toast && (
         <Toast
@@ -93,7 +126,7 @@ function App() {
               error={error}
               onProductDeleted={fetchProducts}
               setEditingProduct={setEditingProduct}
-              setIsAddModalOpen={setIsAddModalOpen}
+              setIsAddProductModalOpen={setIsAddProductModalOpen}
             />
           </ProtectedRoute>
         }
@@ -110,13 +143,25 @@ function App() {
         />
       </Routes>
 
-      <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
+      <Modal isOpen={isAddProductModalOpen} onClose={() => setIsAddProductModalOpen(false)}>
         <ProductForm
           onProductCreated={() => {
             fetchProducts();
-            setIsAddModalOpen(false);
+            setIsAddProductModalOpen(false);
           }}
-          onCancel={() => setIsAddModalOpen(false)}
+          onCancel={() => setIsAddProductModalOpen(false)}
+          onShowToast={showToast}
+        />
+      </Modal>
+
+      <Modal isOpen={isAddTeamModalOpen} onClose={() => setIsAddTeamModalOpen(false)}>
+        <TeamForm
+          onTeamCreated={() => {
+            fetchTeams();
+            setIsAddTeamModalOpen(false);
+            window.dispatchEvent(new Event('teamCreated'));
+          }}
+          onCancel={() => setIsAddTeamModalOpen(false)}
           onShowToast={showToast}
         />
       </Modal>

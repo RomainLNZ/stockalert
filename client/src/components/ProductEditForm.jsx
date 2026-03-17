@@ -2,34 +2,31 @@ import { useState } from 'react';
 import { fetchWithAuth } from '../utils/api';
 
 function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
-
-    const [quantity, setQuantity] = useState('');
-
     const [formData, setFormData] = useState({
-        id: product.id,
         name: product.name,
-        description: product.description,
+        description: product.description || '',
         stock: product.stock,
         minimum: product.minimum
     });
 
-    async function handleUpdate(e) {
-        e.preventDefault()
+    async function handleSubmit(e) {
+        e.preventDefault();
 
-        if (!window.confirm("Êtes-vous sûr de vouloir modifier ce produit ?")) {
+        const activeTeamId = localStorage.getItem('activeTeamId');
+        if (!activeTeamId) {
+            alert('Veuillez sélectionner une team');
             return;
         }
-
 
         try {
             const response = await fetchWithAuth(`/api/products/${product.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: formData.name,
                     description: formData.description,
-                    stock: product.stock,
-                    minimum: Number(formData.minimum)
+                    stock: Number(formData.stock),
+                    minimum: Number(formData.minimum),
+                    team_id: Number(activeTeamId)
                 })
             });
 
@@ -37,159 +34,81 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            onProductUpdated()
-            onCancel()
+            const data = await response.json();
+            onProductUpdated();
+            onShowToast("✅ Produit modifié avec succès", 'success');
+            console.log("Produit modifié :", data);
+            onCancel();
 
-        } catch (erreur) {
-            console.error("Erreur lors de la modification du produit :", erreur);
-            alert("Erreur : " + erreur.message);
+        } catch (error) {
+            console.error("Erreur lors de la modification :", error);
+            alert("Erreur : " + error.message);
         }
     }
 
-    const handleAdd = async (e) => {
-        e.preventDefault();
-        const newStock = product.stock + Number(quantity)
-        try {
-            const response = await fetchWithAuth(`/api/products/${product.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: formData.name,
-                    description: formData.description,
-                    stock: newStock,
-                    minimum: Number(formData.minimum)
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            onProductUpdated()
-            onCancel()
-            setQuantity('')
-
-        } catch (erreur) {
-            console.error("Erreur lors de l'ajout de stock :", erreur);
-            alert("Erreur : " + erreur.message);
-        }
-    };
-
-    const handleRemove = async (e) => {
-        e.preventDefault();
-        if (Number(quantity) > product.stock) {
-            alert("La quantité à retirer dépasse le stock disponible.");
-            return;
-        }
-
-        const newStock = product.stock - Number(quantity)
-
-        if (newStock < product.minimum) {
-            onShowToast(`⚠️ Stock critique : ${product.name}, 'warning'`);
-        }
-
-        try {
-            const response = await fetchWithAuth(`/api/products/${product.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: formData.name,
-                    description: formData.description,
-                    stock: newStock,
-                    minimum: Number(formData.minimum)
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            onProductUpdated()
-            onCancel()
-            setQuantity('')
-
-        } catch (erreur) {
-            console.error("Erreur lors du retrait de stock :", erreur);
-            alert("Erreur : " + erreur.message);
-        }
-    };
-
     return (
-        <div className="bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-6 max-w-md mx-auto mb-8">
+        <div className="bg-blue/10 relative backdrop-blur-sm border border-white/10 shadow-lg rounded-xl p-6 max-w-md mx-auto">
             <button
                 type='button'
-                onClick={() => onCancel()}
+                onClick={onCancel}
                 className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl"
             >
                 ✕
             </button>
-            <h3 className='text-gray-100'>Modifier le produit</h3>
-            <form className='text-gray-100' onSubmit={handleUpdate}>
-                <div className='mb-4' >
-                    <label>Nom :</label>
-                    <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
+            <h3 className="text-gray-100 text-center p-8">Modifier le produit</h3>
+            <form className='text-gray-100' onSubmit={handleSubmit}>
+                <div className='mb-4'>
+                    <label>Nom du produit :</label>
+                    <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
                     />
                 </div>
 
-                <div className='mb-4' >
+                <div className='mb-4'>
                     <label>Description :</label>
-                    <textarea
-                        name="description"
+                    <input
+                        type="text"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows="3"
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
                     />
                 </div>
 
+                <div className='mb-4'>
+                    <label>Stock :</label>
+                    <input
+                        type="number"
+                        value={formData.stock}
+                        onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                        required
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                    />
+                </div>
 
-                <div className='mb-4' >
-                    <label>Seuil d'alerte :</label>
-                    <input value={formData.minimum} onChange={(e) => setFormData({ ...formData, minimum: e.target.value })} required
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none"
+                <div className='mb-4'>
+                    <label>Minimum :</label>
+                    <input
+                        type="number"
+                        value={formData.minimum}
+                        onChange={(e) => setFormData({ ...formData, minimum: e.target.value })}
+                        required
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
                     />
                 </div>
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors mt-2 mb-3"
-                >Sauvegarder modifications</button>
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
+                >
+                    Enregistrer
+                </button>
             </form>
-
-            {/* Section séparée pour la gestion du stock */}
-            <div className='text-gray-100'>
-                <p >Stock actuel : {product.stock}</p>
-                <input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    placeholder="Quantité"
-                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-white/50 focus:outline-none mb-3"
-                />
-                <div className="flex gap-2 mb-3">
-                    <button
-                        type="button"
-                        onClick={handleAdd}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg transition-colors"
-                    >
-                        Ajouter</button>
-                    <button
-                        type="button"
-                        onClick={handleRemove}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors"
-                    >
-                        Retirer</button>
-                </div>
-            </div>
-
-            <button
-                type="button" onClick={onCancel}
-                className="w-full bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg transition-colors"
-            >
-                Annuler</button>
         </div>
-    )
-};
+    );
+}
 
 export default ProductEditForm;

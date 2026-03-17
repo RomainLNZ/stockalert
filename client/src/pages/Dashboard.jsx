@@ -1,6 +1,6 @@
 import ProductList from '../components/ProductList';
 
-function Dashboard({ products, loading, error, onProductDeleted, setEditingProduct, setIsAddModalOpen }) {
+function Dashboard({ products, loading, error, onProductDeleted, setEditingProduct, setIsAddProductModalOpen }) {
 
     if (loading) {
         return (
@@ -34,7 +34,7 @@ function Dashboard({ products, loading, error, onProductDeleted, setEditingProdu
                         </p>
 
                         <button
-                            onClick={() => setIsAddModalOpen(true)}
+                            onClick={() => setIsAddProductModalOpen(true)}
                             className="bg-gradient-to-r from-blue-500 to-indigo-600
                                     text-white font-semibold px-6 py-3 rounded-lg
                                     hover:from-blue-600 hover:to-indigo-700
@@ -45,6 +45,7 @@ function Dashboard({ products, loading, error, onProductDeleted, setEditingProdu
                         </button>
                     </div>
                 </div>
+                
             ) : (
 
                 <ProductList
