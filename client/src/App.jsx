@@ -12,6 +12,7 @@ import Modal from './components/Modal';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import TeamsPage from './pages/TeamsPage';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -131,6 +132,12 @@ function App() {
           </ProtectedRoute>
         }
         />
+
+        <Route path="/teams" element={
+          <ProtectedRoute>
+            <TeamsPage />
+          </ProtectedRoute>
+        } />
 
         <Route path="/add" element={
           <ProtectedRoute>

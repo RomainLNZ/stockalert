@@ -68,6 +68,19 @@ function Navbar({ setIsAddProductModalOpen, setIsAddTeamModalOpen }) {
                                 <span className="font-medium">Dashboard</span>
                             </Link>
 
+                            <Link
+                                to="/teams"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="group px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 
+                                        border border-white/10 hover:border-blue-400/30
+                                        transition-all duration-300 flex items-center gap-3
+                                        hover:shadow-lg hover:shadow-blue-500/10
+                                        hover:scale-[1.02]"
+                            >
+                                <span className="text-xl group-hover:scale-110 transition-transform">👥</span>
+                                <span className="font-medium">Gérer ma team</span>
+                            </Link>
+
                             <button
                                 onClick={() => {
                                     setIsAddProductModalOpen(true);
