@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 
-function TeamsPage() {
+function TeamsPage({ onShowToast }) {
     const [activeTeam, setActiveTeam] = useState(null);
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ function TeamsPage() {
             const teamName = localStorage.getItem('activeTeamName');
 
             if (!teamId) {
-                alert('Veuillez sélectionner une team');
+                onShowToast('Veuillez sélectionner une team', 'warning');
                 navigate('/');
                 return;
             }
@@ -46,16 +46,16 @@ function TeamsPage() {
 
             if (!response.ok) {
                 const error = await response.json();
-                alert(error.error);
+                onShowToast(error.error || 'Erreur lors de l\'invitation', 'error');
                 return;
             }
 
-            alert('✅ Membre invité avec succès !');
+            onShowToast('✅ Membre invité avec succès', 'success');
             setInviteEmail('');
             loadTeamData(); // Recharger la liste
         } catch (error) {
             console.error('Erreur invitation:', error);
-            alert('Erreur lors de l\'invitation');
+            onShowToast('Erreur lors de l\'invitation', 'error');
         }
     }
 
@@ -72,15 +72,15 @@ function TeamsPage() {
 
             if (!response.ok) {
                 const error = await response.json();
-                alert(error.error);
+                onShowToast(error.error || 'Erreur lors du retrait', 'error');
                 return;
             }
 
-            alert('✅ Membre retiré avec succès !');
+            onShowToast('✅ Membre retiré avec succès', 'success');
             loadTeamData(); // Recharger la liste
         } catch (error) {
             console.error('Erreur suppression:', error);
-            alert('Erreur lors du retrait du membre');
+            onShowToast('Erreur lors du retrait du membre', 'error');
         }
     }
 

@@ -36,7 +36,7 @@ function TeamForm({ onTeamCreated, onShowToast, onCancel }) {
 
         } catch (erreur) {
             console.error("Erreur lors de la création du team :", erreur);
-            alert("Erreur : " + erreur.message);
+            onShowToast("Erreur : " + erreur.message, 'error');
         }
     }
 

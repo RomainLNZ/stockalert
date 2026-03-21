@@ -9,7 +9,7 @@ function InviteMemberModal({ onClose, teamId, onMemberInvited, onShowToast }) {
         e.preventDefault();
 
         if (!teamId) {
-            alert("Aucune équipe sélectionnée.");
+            onShowToast("Aucune équipe sélectionnée.", 'warning');
             return;
         }
 
@@ -35,7 +35,7 @@ function InviteMemberModal({ onClose, teamId, onMemberInvited, onShowToast }) {
 
         } catch (erreur) {
             console.error("Erreur lors de l'invitation du membre :", erreur);
-            alert("Erreur : " + erreur.message);
+            onShowToast("Erreur : " + erreur.message, 'error');
         }
     }
 

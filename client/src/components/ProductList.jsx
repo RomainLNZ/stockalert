@@ -1,6 +1,6 @@
 import { fetchWithAuth } from '../utils/api';
 
-function ProductList({ products, onProductDeleted, setEditingProduct }) {
+function ProductList({ products, onProductDeleted, setEditingProduct, onShowToast }) {
     
     async function handleDelete(productId) {
         if (!window.confirm('Voulez-vous vraiment supprimer ce produit ?')) {
@@ -9,7 +9,7 @@ function ProductList({ products, onProductDeleted, setEditingProduct }) {
 
         const activeTeamId = localStorage.getItem('activeTeamId');
         if (!activeTeamId) {
-            alert('Veuillez sélectionner une team');
+            onShowToast('Veuillez sélectionner une team', 'warning');
             return;
         }
 
@@ -25,7 +25,7 @@ function ProductList({ products, onProductDeleted, setEditingProduct }) {
             onProductDeleted();
         } catch (error) {
             console.error("Erreur lors de la suppression :", error);
-            alert("Erreur : " + error.message);
+            onShowToast("Erreur : " + error.message, 'error');
         }
     }
 

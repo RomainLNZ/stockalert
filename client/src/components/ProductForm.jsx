@@ -15,7 +15,7 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
 
         const activeTeamId = localStorage.getItem('activeTeamId');
         if (!activeTeamId) {
-            alert('Veuillez sélectionner une team avant de créer un produit');
+            onShowToast('Veuillez sélectionner une team avant de créer un produit', 'warning');
             return;
         }
 
@@ -49,7 +49,7 @@ function ProductForm({ onProductCreated, onShowToast, onCancel }) {
 
         } catch (erreur) {
             console.error("Erreur lors de la création du produit :", erreur);
-            alert("Erreur : " + erreur.message);
+            onShowToast("Erreur : " + erreur.message, 'error');
         }
     }
 

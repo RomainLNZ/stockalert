@@ -135,7 +135,7 @@ function App() {
 
         <Route path="/teams" element={
           <ProtectedRoute>
-            <TeamsPage />
+            <TeamsPage onShowToast={showToast}/>
           </ProtectedRoute>
         } />
 

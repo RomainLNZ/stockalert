@@ -14,7 +14,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
 
         const activeTeamId = localStorage.getItem('activeTeamId');
         if (!activeTeamId) {
-            alert('Veuillez sélectionner une team');
+            onShowToast('Veuillez sélectionner une team', 'warning');
             return;
         }
 
@@ -42,7 +42,7 @@ function ProductEditForm({ product, onProductUpdated, onCancel, onShowToast }) {
 
         } catch (error) {
             console.error("Erreur lors de la modification :", error);
-            alert("Erreur : " + error.message);
+            onShowToast("Erreur : " + error.message, 'error');
         }
     }
 
