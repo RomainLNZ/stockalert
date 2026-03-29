@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/', authenticateToken, (req, res) => {
     console.log("➕ POST /api/teams - Création d'une team");
-
+    
     const { name } = req.body;
 
     if (!name) {
@@ -36,7 +36,8 @@ router.post('/', authenticateToken, (req, res) => {
 
         // Récupérer la team complète
         const newTeam = db.prepare('SELECT * FROM teams WHERE id = ?').get(newTeamId);
-        
+        console.log(newTeam);
+
         res.status(201).json(newTeam);
     } catch (error) {
         console.error("Erreur lors de la création de la team :", error);
@@ -188,5 +189,43 @@ router.get('/:teamId/members', authenticateToken, (req, res) => {
     }
 });
 
+router.delete('/:teamId', authenticateToken, (req, res) => {
+    console.log("➖ DELETE /api/teams - Suppression d'une team");
+
+    const teamId = req.params.teamId;
+
+    if (!teamId) {
+        return res.status(400).json({ error: 'teamId est requis' });
+    }
+
+    try {
+        // Vérifier que la team existe et que l'utilisateur est owner
+        const team = db.prepare(`
+            SELECT teams.*, team_members.role
+            FROM teams
+            JOIN team_members ON teams.id = team_members.team_id
+            WHERE teams.id = ? AND team_members.user_id = ? AND team_members.role = 'owner'
+        `).get(teamId, req.user.id);
+
+        if (!team) {
+            return res.status(404).json({ error: 'Team introuvable ou utilisateur non owner' });
+        }
+
+        // Supprimer la team
+// 1. Supprimer les produits d'abord
+    db.prepare('DELETE FROM products WHERE team_id = ?').run(teamId);
+
+// 2. Supprimer les membres (y compris owner)
+    db.prepare('DELETE FROM team_members WHERE team_id = ?').run(teamId);
+
+// 3. Supprimer la team
+    db.prepare('DELETE FROM teams WHERE id = ?').run(teamId);
+
+res.json({ message: 'Team supprimée avec succès' });
+    } catch (error) {
+        console.error("Erreur lors de la suppression de la team :", error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
 
 module.exports = router;

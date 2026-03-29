@@ -84,6 +84,36 @@ function TeamsPage({ onShowToast }) {
         }
     }
 
+    async function handleDeleteTeam(teamId) {
+        const typedName = prompt(`Pour confirmer, tapez le nom de la team : ${activeTeam.name}`);
+
+        if (typedName !== activeTeam.name) {
+            onShowToast('Le nom ne correspond pas', 'error');
+            return;
+        }
+
+        if (!window.confirm('Êtes-vous VRAIMENT sûr ? Cette action est irréversible !')) {
+            return;
+        }
+
+        try {
+            const response = await fetchWithAuth(`/api/teams/${teamId}`, { method: 'DELETE' });
+
+            if (!response.ok) {
+                const error = await response.json();
+                onShowToast(error.error || 'Erreur lors de la suppression de la team', 'error');
+                return;
+            }
+            onShowToast('✅ Team supprimée avec succès', 'success');
+            localStorage.removeItem('activeTeamId');
+            localStorage.removeItem('activeTeamName');
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Erreur suppression team:', error);
+            onShowToast('Erreur lors de la suppression de la team', 'error');
+        }
+    }
+
     useEffect(() => {
         loadTeamData();
     }, []);
@@ -99,7 +129,7 @@ function TeamsPage({ onShowToast }) {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-white mb-2">
-                        🏢 {activeTeam?.name}
+                        Service: {activeTeam?.name}
                     </h1>
                     <p className="text-gray-400">Gérez votre équipe et ses membres</p>
                 </div>
@@ -164,14 +194,21 @@ function TeamsPage({ onShowToast }) {
                         </form>
                     </div>
                 </div>
-
-                {/* Section Danger Zone (à compléter) */}
                 <div>
                     <h2 className="text-xl font-bold text-red-400 mb-4">
                         ⚠️ Zone dangereuse
                     </h2>
                     <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                        <p className="text-gray-400">Supprimer la team ici...</p>
+                        <p className="text-gray-300 mb-4">
+                            Supprimer cette team supprimera définitivement tous les produits et membres associés.
+                        </p>
+                        <button
+                            onClick={() => handleDeleteTeam(activeTeam.id)}
+                            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white
+                            rounded-lg transition font-medium"
+                        >
+                            Supprimer cette team
+                        </button>
                     </div>
                 </div>
             </div>
