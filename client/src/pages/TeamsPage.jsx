@@ -7,6 +7,7 @@ function TeamsPage({ onShowToast }) {
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [inviteEmail, setInviteEmail] = useState('');
+    const [isOwner, setIsOwner] = useState(false);
     const navigate = useNavigate();
 
     async function loadTeamData() {
@@ -27,7 +28,9 @@ function TeamsPage({ onShowToast }) {
             const response = await fetchWithAuth(`/api/teams/${teamId}/members`);
             const data = await response.json();
             setMembers(data.members || []);
-
+            const myUserId = localStorage.getItem('userId');
+            const myMembership = data.members.find(m => m.id === myUserId);
+            setIsOwner(myMembership?.role === 'owner');
             setLoading(false);
         } catch (error) {
             console.error('Erreur chargement team:', error);
@@ -168,7 +171,6 @@ function TeamsPage({ onShowToast }) {
                     </div>
                 </div>
 
-                {/* Section Invitation (à compléter) */}
                 <div className="mb-8">
                     <h2 className="text-xl font-bold text-white mb-4">
                         ➕ Inviter un membre
@@ -198,18 +200,20 @@ function TeamsPage({ onShowToast }) {
                     <h2 className="text-xl font-bold text-red-400 mb-4">
                         ⚠️ Zone dangereuse
                     </h2>
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                        <p className="text-gray-300 mb-4">
-                            Supprimer cette team supprimera définitivement tous les produits et membres associés.
-                        </p>
-                        <button
-                            onClick={() => handleDeleteTeam(activeTeam.id)}
-                            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white
-                            rounded-lg transition font-medium"
-                        >
-                            Supprimer cette team
-                        </button>
-                    </div>
+                    {isOwner && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                            <p className="text-gray-300 mb-4">
+                                Supprimer cette team supprimera définitivement tous les produits et membres associés.
+                            </p>
+                            <button
+                                onClick={() => handleDeleteTeam(activeTeam.id)}
+                                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white
+                                rounded-lg transition font-medium"
+                            >
+                                Supprimer cette team
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
