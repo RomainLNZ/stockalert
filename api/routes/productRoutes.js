@@ -112,15 +112,29 @@ router.put('/:id', authenticateToken, (req, res, next) => {
     const { id } = req.params;
     const { name, description, stock, minimum, team_id } = req.body;
 
-    if (!name || stock === undefined || minimum === undefined) {
-        return res.status(400).json({ 
-            error: 'Les champs name, stock et minimum sont requis' 
+    if (!name || name.trim() === '') {
+        return res.status(400).json({
+            error: 'Le nom est requis'
+        });
+    }
+
+
+    if (!Number.isInteger(stock) || stock < 0) {
+        return res.status(400).json({
+            error: 'Le stock doit être un entier supérieur ou égal à 0'
+        });
+    }
+
+    if (!Number.isInteger(minimum) || minimum < 0) {
+        return res.status(400).json({
+            error: 'Le minimum doit être un entier supérieur ou égal à 0'
         });
     }
 
     if (!team_id) {
         return res.status(400).json({ error: 'team_id requis' });
     }
+
 
     try {
 

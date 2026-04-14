@@ -8,7 +8,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
 const SALT_ROUNDS = 10;
 
-router.post('/signup', async (req, res) => {
+router.post('/signup', async (req, res, next) => {
   console.log("🔐 POST /api/auth/signup - Inscription utilisateur");
   const email = req.body.email?.toLowerCase().trim();
   const { password } = req.body;
@@ -29,20 +29,24 @@ router.post('/signup', async (req, res) => {
     });
   }
 
-  const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
-
   try {
       const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
       if (existingUser) {
         return res.status(409).json({ error: 'Email déjà utilisé' });
       }
 
+      const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+
       const insert = db.prepare(`
         INSERT INTO users (email, password_hash) 
         VALUES (?, ?)
       `);
       const result = insert.run(email, password_hash);
-      const newUser = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
+
+      const newUser = {
+        id: result.lastInsertRowid,
+        email
+      };
         
       const token = jwt.sign(
         { id: newUser.id, email: newUser.email },
@@ -51,13 +55,12 @@ router.post('/signup', async (req, res) => {
       );
       res.status(201).json({ token, email: newUser.email });
     } catch (error) {
-        console.error("Erreur d'insertion:", error);
-        res.status(500).json({ error: 'Erreur lors de la création de l\'utilisateur' });
+        next(error);
       }
 });
 
 // Route 2 : Connexion
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   console.log("🔐 POST /api/auth/login - Connexion utilisateur");
   const email = req.body.email?.toLowerCase().trim();
   const { password } = req.body;
@@ -66,6 +69,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ 
         error: 'Données manquantes (email, password requis)' 
       });
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Email invalide' });
     }
 
   try {
@@ -90,8 +97,7 @@ router.post('/login', async (req, res) => {
     );
       res.json({ token, email: user.email });
   } catch (error) {
-      console.error("Erreur de connexion:", error);
-      res.status(500).json({ error: 'Erreur lors de la connexion' });
+      next(error);
     }
 
 
