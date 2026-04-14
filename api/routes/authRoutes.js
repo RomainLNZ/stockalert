@@ -2,15 +2,14 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const { db } = require('../database/init');
 const { generateToken } = require('../utils/jwt');
+const { normalizeEmail, isValidEmail, isValidPassword } = require('../utils/validation');
 
 const router = express.Router();
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
 const SALT_ROUNDS = 10;
 
 router.post('/signup', async (req, res, next) => {
   console.log("🔐 POST /api/auth/signup - Inscription utilisateur");
-  const email = req.body.email?.toLowerCase().trim();
+  const email = normalizeEmail(req.body.email);
   const { password } = req.body;
     
   if (!email || !password) {
@@ -19,11 +18,11 @@ router.post('/signup', async (req, res, next) => {
     });
   }
 
-  if (!emailRegex.test(email)) {
+  if (!isValidEmail(email)) {
     return res.status(400).json({ error: 'Email invalide' });
   }
   
-  if (!passwordRegex.test(password)) {
+  if (!isValidPassword(password)) {
     return res.status(400).json({ 
       error: 'Mot de passe trop faible (doit contenir au moins 8 caractères, majuscules, minuscules, chiffres et caractères spéciaux)' 
     });
@@ -58,7 +57,7 @@ router.post('/signup', async (req, res, next) => {
 // Route 2 : Connexion
 router.post('/login', async (req, res, next) => {
   console.log("🔐 POST /api/auth/login - Connexion utilisateur");
-  const email = req.body.email?.toLowerCase().trim();
+  const email = normalizeEmail(req.body.email);
   const { password } = req.body;
 
     if (!email || !password) {
@@ -67,7 +66,7 @@ router.post('/login', async (req, res, next) => {
       });
     }
 
-    if (!emailRegex.test(email)) {
+    if (!isValidEmail(email)) {
       return res.status(400).json({ error: 'Email invalide' });
     }
 
