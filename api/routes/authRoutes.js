@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const { db } = require('../database/init');
+const { generateToken } = require('../utils/jwt');
 
 const router = express.Router();
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,11 +48,7 @@ router.post('/signup', async (req, res, next) => {
         email
       };
         
-      const token = jwt.sign(
-        { id: newUser.id, email: newUser.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
+      const token = generateToken(newUser);
       res.status(201).json({ token, email: newUser.email });
     } catch (error) {
         next(error);
@@ -90,12 +86,9 @@ router.post('/login', async (req, res, next) => {
         });
       }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-    );
-      res.json({ token, email: user.email });
+    const token = generateToken(user);
+    res.json({ token, email: user.email });
+    
   } catch (error) {
       next(error);
     }

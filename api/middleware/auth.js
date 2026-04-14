@@ -26,7 +26,11 @@ function authenticateToken(req, res, next) {
     next();
     
     } catch (err) {
-    return res.status(403).json({ error: 'Token invalide ou expiré' });
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token expiré' });
+      }
+
+      return res.status(403).json({ error: 'Token invalide' });
     }
 }
 
