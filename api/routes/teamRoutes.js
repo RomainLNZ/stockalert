@@ -3,10 +3,11 @@ const { db } = require('../database/init');
 const authenticateToken = require('../middleware/auth');
 const router = express.Router();
 
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', authenticateToken, (req, res, next) => {
     console.log("➕ POST /api/teams - Création d'une team");
     
     const { name } = req.body;
+    const userId = req.user.id;
 
     if (!name) {
         return res.status(400).json({ 
@@ -20,32 +21,35 @@ router.post('/', authenticateToken, (req, res) => {
             return res.status(409).json({ error: 'Nom de team déjà utilisé' });
         }
         // Créer la team
-        const insertTeam = db.prepare(`
-            INSERT INTO teams (name, created_by) 
-            VALUES (?, ?)
-        `);
-        const resultTeam = insertTeam.run(name, req.user.id);
-        const newTeamId = resultTeam.lastInsertRowid;
+        const createTeamTransaction = db.transaction((name, userId) => {
+            const insertTeam = db.prepare(`
+                INSERT INTO teams (name, created_by) 
+                VALUES (?, ?)
+            `);
+            const resultTeam = insertTeam.run(name, userId);
+            const newTeamId = resultTeam.lastInsertRowid;
 
         // Ajouter le créateur comme owner
-        const insertMember = db.prepare(`
-            INSERT INTO team_members (user_id, team_id, role) 
-            VALUES (?, ?, ?)
-        `);
-        insertMember.run(req.user.id, newTeamId, 'owner');
+            const insertMember = db.prepare(`
+                INSERT INTO team_members (user_id, team_id, role) 
+                VALUES (?, ?, ?)
+            `);
+            insertMember.run(userId, newTeamId, 'owner');
 
-        // Récupérer la team complète
-        const newTeam = db.prepare('SELECT * FROM teams WHERE id = ?').get(newTeamId);
-        console.log(newTeam);
+            // Récupérer la team complète
+            const newTeam = db.prepare('SELECT * FROM teams WHERE id = ?').get(newTeamId);
 
+            return newTeam;
+        });
+        
+        const newTeam = createTeamTransaction(name, userId);
         res.status(201).json(newTeam);
     } catch (error) {
-        console.error("Erreur lors de la création de la team :", error);
-        res.status(500).json({ error: 'Erreur lors de la création de la team' });
+        next(error);
     }
 });
 
-router.get('/', authenticateToken, (req, res) => {
+router.get('/', authenticateToken, (req, res, next) => {
     console.log("📋 GET /api/teams - Récupération des teams de l'user");
 
     try {
@@ -57,12 +61,11 @@ router.get('/', authenticateToken, (req, res) => {
         `).all(req.user.id);
         res.json(teams);
     } catch (error) {
-        console.error("Erreur lors de la récupération des teams :", error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        next(error);
     }
 });
 
-router.post('/:teamId/members', authenticateToken, (req, res) => {
+router.post('/:teamId/members', authenticateToken, (req, res, next) => {
     console.log("➕ POST /api/team-members - Ajouter un membre à une team");
 
     const teamId = req.params.teamId;
@@ -76,12 +79,8 @@ router.post('/:teamId/members', authenticateToken, (req, res) => {
 
     try {
         // Vérifier que la team existe et que l'utilisateur est owner
-        const team = db.prepare(`
-            SELECT teams.*, team_members.role
-            FROM teams
-            JOIN team_members ON teams.id = team_members.team_id
-            WHERE teams.id = ? AND team_members.user_id = ?
-        `).get(teamId, req.user.id);
+        const team = getTeamMembership(teamId, req.user.id);
+        
         if (!team) {
             return res.status(404).json({ error: 'Team introuvable' });
         }
@@ -106,12 +105,11 @@ router.post('/:teamId/members', authenticateToken, (req, res) => {
         insertMember.run(teammate.id, teamId, 'member');
         res.status(201).json({ message: 'Membre ajouté à la team avec succès' });
     } catch (error) {
-        console.error("Erreur lors de l'ajout du membre à la team :", error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        next(error);
     }
 });
 
-router.delete('/:teamId/members/:userId', authenticateToken, (req, res) => {
+router.delete('/:teamId/members/:userId', authenticateToken, (req, res, next) => {
     console.log("➖ DELETE /api/team-members - Retirer un membre d'une team");
 
     const teamId = req.params.teamId;
@@ -148,12 +146,11 @@ router.delete('/:teamId/members/:userId', authenticateToken, (req, res) => {
         deleteMember.run(teamId, userId);
         res.json({ message: 'Membre retiré de la team avec succès' });
     } catch (error) {
-        console.error("Erreur lors du retrait du membre de la team :", error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        next(error);
     }
 });
 
-router.get('/:teamId/members', authenticateToken, (req, res) => {
+router.get('/:teamId/members', authenticateToken, (req, res, next) => {
     console.log("📋 GET /api/team-members - Récupération des membres d'une team");
 
     const teamId = req.params.teamId;
@@ -184,12 +181,11 @@ router.get('/:teamId/members', authenticateToken, (req, res) => {
         `).all(teamId);
         res.json({ members });
     } catch (error) {
-        console.error("Erreur lors de la récupération des membres de la team :", error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        next(error);
     }
 });
 
-router.delete('/:teamId', authenticateToken, (req, res) => {
+router.delete('/:teamId', authenticateToken, (req, res, next) => {
     console.log("➖ DELETE /api/teams - Suppression d'une team");
 
     const teamId = req.params.teamId;
@@ -223,8 +219,7 @@ router.delete('/:teamId', authenticateToken, (req, res) => {
 
 res.json({ message: 'Team supprimée avec succès' });
     } catch (error) {
-        console.error("Erreur lors de la suppression de la team :", error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        next(error);
     }
 });
 

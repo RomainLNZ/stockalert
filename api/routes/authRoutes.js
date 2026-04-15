@@ -1,7 +1,7 @@
 const express = require('express');
 const { normalizeEmail, isValidEmail, isValidPassword } = require('../utils/validation');
 const {createUser, loginUser} = require('../services/authService');
-const loginLimiter = require('../middleware/loginLimiter');
+const {loginLimiter, registerLoginFailure, clearLoginAttempts} = require('../middleware/loginLimiter');
 const router = express.Router();
 
 router.post('/signup', async (req, res, next) => {
@@ -42,28 +42,33 @@ router.post('/login', loginLimiter, async (req, res, next) => {
   const email = normalizeEmail(req.body.email);
   const { password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ 
-        error: 'Données manquantes (email, password requis)' 
-      });
-    }
+  if (!email || !password) {
+    return res.status(400).json({ 
+      error: 'Données manquantes (email, password requis)' 
+    });
+  }
 
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ error: 'Email invalide' });
-    }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Email invalide' });
+  }
 
   try {
-    const { user, token } = await loginUser(email, password)
-    res.status(200).json({ token, email: user.email });
+    const { user, token } = await loginUser(email, password);
+
+    clearLoginAttempts(req.ip);
+
+    res.json({ token, email: user.email });
 
   } catch (error) {
-      if (error.message === 'INVALID_CREDENTIALS') {
-        return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
-      }
-        next(error);
-      }
+    if (error.message === 'INVALID_CREDENTIALS') {
+      registerLoginFailure(req.ip);
 
-  // anti brute force (limiter le nombre de tentatives de connexion)
+      return res.status(401).json({
+        error: 'Email ou mot de passe incorrect'
+      });
+    }
+    next(error);
+  }
 });
 
 module.exports = router;

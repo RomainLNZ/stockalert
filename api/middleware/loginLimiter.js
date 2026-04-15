@@ -6,6 +6,22 @@ function loginLimiter(req, res, next) {
     const ip = req.ip;
     const now = Date.now();
 
+    if (attempts[ip]) {
+        const timeSinceLastAttempt = now - attempts[ip].lastAttempt;
+
+        if (timeSinceLastAttempt < WINDOW_MS && attempts[ip].count >= MAX_ATTEMPTS) {
+            return res.status(429).json({
+                error: 'Trop de tentatives de connexion. Veuillez réessayer plus tard.'
+            });
+        }
+    }
+
+    next();
+}
+
+function registerLoginFailure(ip) {
+    const now = Date.now();
+
     if (!attempts[ip]) {
         attempts[ip] = {
             count: 1,
@@ -22,14 +38,14 @@ function loginLimiter(req, res, next) {
 
         attempts[ip].lastAttempt = now;
     }
-
-    if (attempts[ip].count > MAX_ATTEMPTS) {
-        return res.status(429).json({
-            error: 'Trop de tentatives de connexion. Veuillez réessayer plus tard.'
-        });
-    }
-
-    next();
 }
 
-module.exports = loginLimiter;
+function clearLoginAttempts(ip) {
+    delete attempts[ip];
+}
+
+module.exports = {
+    loginLimiter,
+    registerLoginFailure,
+    clearLoginAttempts
+};
