@@ -1,11 +1,8 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
-const { db } = require('../database/init');
-const { generateToken } = require('../utils/jwt');
 const { normalizeEmail, isValidEmail, isValidPassword } = require('../utils/validation');
+const {createUser, loginUser} = require('../services/authService');
 
 const router = express.Router();
-const SALT_ROUNDS = 10;
 
 router.post('/signup', async (req, res, next) => {
   console.log("🔐 POST /api/auth/signup - Inscription utilisateur");
@@ -29,27 +26,12 @@ router.post('/signup', async (req, res, next) => {
   }
 
   try {
-      const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-      if (existingUser) {
+      const { user, token } = await createUser(email, password);
+      res.status(201).json({ token, email: user.email });
+    } catch (error) {
+      if (error.message === 'EMAIL_ALREADY_EXISTS') {
         return res.status(409).json({ error: 'Email déjà utilisé' });
       }
-
-      const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
-
-      const insert = db.prepare(`
-        INSERT INTO users (email, password_hash) 
-        VALUES (?, ?)
-      `);
-      const result = insert.run(email, password_hash);
-
-      const newUser = {
-        id: result.lastInsertRowid,
-        email
-      };
-        
-      const token = generateToken(newUser);
-      res.status(201).json({ token, email: newUser.email });
-    } catch (error) {
         next(error);
       }
 });
@@ -71,27 +53,15 @@ router.post('/login', async (req, res, next) => {
     }
 
   try {
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-      if (!user) {
-        return res.status(401).json({
-          error: "Email ou mot de passe incorrect"
-        });
-      }
+    const { user, token } = await loginUser(email, password)
+    res.status(200).json({ token, email: user.email });
 
-    const passIsValid = await bcrypt.compare(password, user.password_hash);
-      if (!passIsValid) {
-        return res.status(401).json({
-          error: "Email ou mot de passe incorrect"
-        });
-      }
-
-    const token = generateToken(user);
-    res.json({ token, email: user.email });
-    
   } catch (error) {
-      next(error);
-    }
-
+      if (error.message === 'INVALID_CREDENTIALS') {
+        return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+      }
+        next(error);
+      }
 
   // anti brute force (limiter le nombre de tentatives de connexion)
 });
