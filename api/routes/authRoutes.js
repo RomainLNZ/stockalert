@@ -1,7 +1,7 @@
 const express = require('express');
 const { normalizeEmail, isValidEmail, isValidPassword } = require('../utils/validation');
 const {createUser, loginUser} = require('../services/authService');
-
+const loginLimiter = require('../middleware/loginLimiter');
 const router = express.Router();
 
 router.post('/signup', async (req, res, next) => {
@@ -37,7 +37,7 @@ router.post('/signup', async (req, res, next) => {
 });
 
 // Route 2 : Connexion
-router.post('/login', async (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res, next) => {
   console.log("🔐 POST /api/auth/login - Connexion utilisateur");
   const email = normalizeEmail(req.body.email);
   const { password } = req.body;
