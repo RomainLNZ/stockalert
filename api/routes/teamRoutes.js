@@ -1,6 +1,7 @@
 const express = require('express');
 const { db } = require('../database/init');
 const authenticateToken = require('../middleware/auth');
+const { requireTeamOwner } = require('../utils/teamAccess');
 const router = express.Router();
 
 router.post('/', authenticateToken, (req, res, next) => {
@@ -78,15 +79,7 @@ router.post('/:teamId/members', authenticateToken, (req, res, next) => {
     }
 
     try {
-        // Vérifier que la team existe et que l'utilisateur est owner
-        const team = getTeamMembership(teamId, req.user.id);
-        
-        if (!team) {
-            return res.status(404).json({ error: 'Team introuvable' });
-        }
-        if (team.role !== 'owner') {
-            return res.status(403).json({ error: 'Droits insuffisants pour ajouter un membre à cette team' });
-        }
+        requireTeamOwner(teamId, req.user.id);
         // Vérifier que le teammate existe
         const teammate = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (!teammate) {
@@ -122,31 +115,32 @@ router.delete('/:teamId/members/:userId', authenticateToken, (req, res, next) =>
     }
 
     try {
-        // Vérifier que la team existe et que l'utilisateur est owner
-        const team = db.prepare(`SELECT teams.*, team_members.role
-            FROM teams
-            JOIN team_members ON teams.id = team_members.team_id
-            WHERE teams.id = ? AND team_members.user_id = ?`).get(teamId, req.user.id);
-        // Vérifier que le membre existe
-        const member = db.prepare('SELECT id FROM team_members WHERE team_id = ? AND user_id = ?').get(teamId, userId);
-        if (!team) {
-            return res.status(404).json({ error: 'Team introuvable' });
-        }
+        const team = requireTeamOwner(teamId, req.user.id);
+
+        const member = db.prepare(
+            'SELECT id FROM team_members WHERE team_id = ? AND user_id = ?'
+        ).get(teamId, userId);
+
         if (!member) {
             return res.status(404).json({ error: 'Membre non trouvé dans cette team' });
         }
-        if (team.role !== 'owner') {
-            return res.status(403).json({ error: 'Droits insuffisants pour retirer un membre de cette team' });
-        }
+
         if (userId === req.user.id && team.role === 'owner') {
-            return res.status(403).json({ error: 'Vous ne pouvez pas vous retirer de la team si vous êtes owner' });
+            return res.status(403).json({
+                error: 'Vous ne pouvez pas vous retirer de la team si vous êtes owner'
+            });
         }
-        // Retirer le membre de la team
-        const deleteMember = db.prepare('DELETE FROM team_members WHERE team_id = ? AND user_id = ?');
+
+        const deleteMember = db.prepare(
+            'DELETE FROM team_members WHERE team_id = ? AND user_id = ?'
+        );
         deleteMember.run(teamId, userId);
+
         res.json({ message: 'Membre retiré de la team avec succès' });
     } catch (error) {
         next(error);
+    } catch (error) {
+            next(error);
     }
 });
 

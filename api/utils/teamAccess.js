@@ -1,11 +1,38 @@
 const { db } = require('../database/init');
 
-function getTeamMembership(team_id, user_id) {
+function getTeamMembership(teamId, userId) {
     const membership = db
-        .prepare('SELECT * FROM team_members WHERE team_id = ? AND user_id = ?')
-        .get(team_id, user_id);
+        .prepare(`
+            SELECT teams.*, team_members.role
+            FROM teams
+            JOIN team_members ON teams.id = team_members.team_id
+            WHERE teams.id = ? AND team_members.user_id = ?
+        `)
+        .get(teamId, userId);
 
     return membership;
 }
 
-module.exports = { getTeamMembership };
+function assertOwner(role) {
+    if (role !== 'owner') {
+        throw new Error('INSUFFICIENT_PERMISSIONS');
+    }
+}
+
+function requireTeamOwner(teamId, userId) {
+    const teamMembership = getTeamMembership(teamId, userId);
+
+    if (!teamMembership) {
+        throw new Error('TEAM_NOT_FOUND');
+    }
+
+    assertOwner(teamMembership.role);
+
+    return teamMembership;
+}
+
+module.exports = {
+    getTeamMembership,
+    assertOwner,
+    requireTeamOwner
+};
