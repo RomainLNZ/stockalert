@@ -10,6 +10,8 @@ const teamRoutes = require('./routes/teamRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const errorHandler = require('./middleware/errorHandler');
+
 app.use(cors());
 app.use(express.json());
 
@@ -32,13 +34,7 @@ app.use((req, res) => {
   });
 });
 
-app.use((error, req, res, next) => {
-  console.error('Erreur serveur :', error);
-
-  res.status(error.status || 500).json({
-    error: error.message || 'Erreur interne du serveur'
-  });
-});
+app.use(errorHandler);
 
 (async () => {
   await initDatabase();

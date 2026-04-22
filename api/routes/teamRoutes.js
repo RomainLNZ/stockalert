@@ -139,8 +139,6 @@ router.delete('/:teamId/members/:userId', authenticateToken, (req, res, next) =>
         res.json({ message: 'Membre retiré de la team avec succès' });
     } catch (error) {
         next(error);
-    } catch (error) {
-            next(error);
     }
 });
 

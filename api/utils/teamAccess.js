@@ -1,4 +1,5 @@
 const { db } = require('../database/init');
+const AppError = require('./AppError');
 
 function getTeamMembership(teamId, userId) {
     const membership = db
@@ -15,7 +16,7 @@ function getTeamMembership(teamId, userId) {
 
 function assertOwner(role) {
     if (role !== 'owner') {
-        throw new Error('INSUFFICIENT_PERMISSIONS');
+        throw new AppError('INSUFFICIENT_PERMISSIONS', 403);
     }
 }
 
@@ -23,7 +24,7 @@ function requireTeamOwner(teamId, userId) {
     const teamMembership = getTeamMembership(teamId, userId);
 
     if (!teamMembership) {
-        throw new Error('TEAM_NOT_FOUND');
+        throw new AppError('TEAM_NOT_FOUND', 404);
     }
 
     assertOwner(teamMembership.role);
